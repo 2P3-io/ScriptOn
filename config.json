@@ -1,0 +1,6 @@
+{
+  "debug": false,
+  "openai_model": "gpt-4",
+  "exit_command": "exit",
+  "system_message": "you are an intelligence agent for a python script running on the user's system, your name is '2P3' using exec_command and exec_python tool your possibilities are limitless"
+}
