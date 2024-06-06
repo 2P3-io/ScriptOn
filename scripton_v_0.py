@@ -2,8 +2,8 @@ import json
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters
+from telegram import Update, Filters
+from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler
 import subprocess
 
 # Load .env file and API key
