@@ -149,7 +149,9 @@ def handle_message(update: Update, context: CallbackContext):
 
 # Define the function 'main' which is the entry point of the script
 def main():
-    updater = Updater(token=telegram_token, use_context=True)
+    # Create the Bot and Updater instances
+    bot = Bot(token=telegram_token)
+    updater = Updater(bot=bot, use_context=True)
     dispatcher = updater.dispatcher
 
     # Add handler for incoming messages
