@@ -2,8 +2,8 @@ import json
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-from telegram import Update, Filters
-from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import subprocess
 
 # Load .env file and API key
@@ -19,10 +19,10 @@ def execute_command(command):
     try:
         result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
         return {"success": True, "output": result.stdout.strip() or "done"}
-    except Exception as e:
+    except subprocess.CalledProcessError as e:
         return {"success": False, "error": str(e)}
 
-def exec_python(cell, bot, chat_id):
+async def exec_python(cell, update: Update, context: ContextTypes.DEFAULT_TYPE):
     ipython = get_ipython()
     if ipython is None:
         from IPython.terminal.embed import InteractiveShellEmbed
@@ -35,36 +35,32 @@ def exec_python(cell, bot, chat_id):
         output += f"\n{result.error_in_exec}"
     if len(output) > 1000:
         output = output[:1000] + "\n\n... truncated"
-    bot.send_message(chat_id=chat_id, text=output)
+    await update.message.reply_text(output)
 
-def handle_command(update: Update, context: CallbackContext):
+async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_content = update.message.text
-    chat_id = update.message.chat_id
-    bot = context.bot
-
     if user_content.lower() == config["exit_command"]:
-        bot.send_message(chat_id=chat_id, text="Exiting.")
+        await update.message.reply_text("Exiting.")
         return  # End the command
 
     if user_content.startswith("/exec"):
-        exec_python(user_content[6:], bot, chat_id)
+        await exec_python(user_content[6:], update, context)
     else:
         result = execute_command(user_content)
         response = f"Command execution result: {result['output']}" if result['success'] else f"Error: {result['error']}"
-        bot.send_message(chat_id=chat_id, text=response)
+        await update.message.reply_text(response)
 
-def start(update: Update, context: CallbackContext):
-    update.message.reply_text('Welcome to the bot. Use /exec <code> to execute Python code, or type a command to execute.')
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text('Welcome to the bot. Use /exec <code> to execute Python code, or type a command to execute.')
 
 def main():
-    updater = Updater(telegram_token, use_context=True)
-    dp = updater.dispatcher
+    app = ApplicationBuilder().token(telegram_token).build()
 
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_command))
+    # Adding handlers for different types of messages
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters=filters.TEXT & ~filters.COMMAND, callback=handle_command))
 
-    updater.start_polling()
-    updater.idle()
+    app.run_polling()
 
 if __name__ == "__main__":
     main()
