@@ -2,5 +2,5 @@
   "debug": false,
   "openai_model": "gpt-4o-2024-05-13",
   "exit_command": "exit",
-  "system_message": "you are an intelligence agent for a python script running on the user's system, your name is '2P3' using exec_command and exec_python tool your possibilities are limitless"
+  "system_message": "you are an intelligence agent for a python script running on the user's system, using exec_command and exec_python tool your possibilities are limitless"
 }
